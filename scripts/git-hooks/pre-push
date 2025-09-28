@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Pre-push hook: prevent pushing malformed release tags (must be x.y.z with no leading v)
+set -euo pipefail
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Only inspect tag refs being pushed
+  case "$remote_ref" in
+    refs/tags/*)
+      tag=${remote_ref#refs/tags/}
+      if [[ ! $tag =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        echo "[pre-push] Tag '$tag' rejected: expected x.y.z (no leading v)." >&2
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+exit 0

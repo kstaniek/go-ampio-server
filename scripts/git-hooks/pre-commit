@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# pre-commit: basic hygiene checks
+set -euo pipefail
+
+fail=0
+
+# 1. go fmt check
+unformatted=$(gofmt -l . | grep -v '^vendor/' || true)
+if [ -n "$unformatted" ]; then
+  echo "[pre-commit] Unformatted Go files:" >&2
+  echo "$unformatted" >&2
+  fail=1
+fi
+
+# 2. go vet (fast subset) on staged go files only
+staged_go=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
+if [ -n "$staged_go" ]; then
+  echo "[pre-commit] Running vet on staged files"; 
+  go vet $staged_go || fail=1
+fi
+
+# 3. Prevent committing build artifacts / large binaries accidentally
+blocked=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^(bin/|dist/)' || true)
+if [ -n "$blocked" ]; then
+  echo "[pre-commit] Refusing to commit built artifacts (bin/ dist/). Use git add -f if intentional:" >&2
+  echo "$blocked" >&2
+  fail=1
+fi
+
+# 4. Enforce no leading 'v' in new annotated tags added in this commit (rare)
+# (Checks refs in commit message trailer 'Tag:' if used)
+if grep -q '^Tag:' .git/COMMIT_EDITMSG 2>/dev/null; then
+  tag=$(grep '^Tag:' .git/COMMIT_EDITMSG | awk '{print $2}')
+  if [[ $tag =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "[pre-commit] Tag trailer uses leading v: $tag" >&2
+    fail=1
+  fi
+fi
+
+
+if [ $fail -ne 0 ]; then
+  echo "[pre-commit] Aborting commit" >&2
+  exit 1
+fi
+
+exit 0

@@ -1,0 +1,4 @@
+# CODEOWNERS defines individuals or teams that are responsible for code in this repository.
+# Lines are matched top-to-bottom; the last matching pattern takes precedence.
+
+* @kstaniek

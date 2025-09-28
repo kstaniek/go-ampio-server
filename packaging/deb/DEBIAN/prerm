@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+if command -v systemctl >/dev/null 2>&1; then
+	if [ -f /lib/systemd/system/can-server.service ] || [ -f /etc/systemd/system/can-server.service ]; then
+		systemctl stop can-server.service >/dev/null 2>&1 || true
+		systemctl disable can-server.service >/dev/null 2>&1 || true
+	fi
+fi
+
+exit 0

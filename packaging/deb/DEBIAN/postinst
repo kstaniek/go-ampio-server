@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+if command -v systemctl >/dev/null 2>&1; then
+	systemctl daemon-reload || true
+	# Enable but don't auto-start unless first install
+	if [ "$1" = "configure" ]; then
+		systemctl enable can-server.service >/dev/null 2>&1 || true
+	fi
+fi
+
+exit 0

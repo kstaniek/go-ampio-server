@@ -1,0 +1,35 @@
+[Unit]
+Description=CAN ↔ TCP cannelloni gateway
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/default/can-server
+# systemd does not perform shell parameter expansion in ExecStart, 
+# so we invoke a shell explicitly
+ExecStart=/bin/sh -c '/usr/bin/can-server \
+	-backend "${CAN_SERVER_BACKEND:-socketcan}" \
+	-serial "${CAN_SERVER_SERIAL:-/dev/ttyUSB0}" \
+	-baud "${CAN_SERVER_BAUD:-115200}" \
+	-can-if "${CAN_SERVER_IF:-can0}" \
+	-listen "${CAN_SERVER_LISTEN:-:20000}" \
+	-hub-buffer "${CAN_SERVER_HUB_BUFFER:-512}" \
+	-hub-policy "${CAN_SERVER_HUB_POLICY:-drop}" \
+	-max-clients "${CAN_SERVER_MAX_CLIENTS:-0}" \
+	-handshake-timeout "${CAN_SERVER_HANDSHAKE_TIMEOUT:-3s}" \
+	-client-read-timeout "${CAN_SERVER_CLIENT_READ_TIMEOUT:-60s}" \
+	-log-format "${CAN_SERVER_LOG_FORMAT:-text}" \
+	-log-level "${CAN_SERVER_LOG_LEVEL:-info}" \
+	-mdns-enable "${CAN_SERVER_MDNS_ENABLE:-true}" \
+	${CAN_SERVER_METRICS:+-metrics-addr "$CAN_SERVER_METRICS"} \
+	${CAN_SERVER_EXTRA_FLAGS}'
+Restart=on-failure
+RestartSec=2
+User=root
+AmbientCapabilities=CAP_NET_ADMIN
+NoNewPrivileges=true
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

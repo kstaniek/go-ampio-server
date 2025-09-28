@@ -1,0 +1,31 @@
+# Binaries
+/bin/
+can-server
+!/packaging/deb/etc/default/can-server
+!/cmd/can-server
+
+# Build artifacts
+dist/
+*.tar.gz
+
+# Coverage and test outputs
+coverage.out
+coverage.html
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Go build cache (should be outside repo, but just in case)
+*.test
+
+# Temporary / scratch
+build.err

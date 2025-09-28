@@ -1,0 +1,38 @@
+# Environment defaults for can-server systemd service
+# Uncomment and adjust as needed.
+
+# Backend: serial or socketcan
+# CAN_SERVER_BACKEND=socketcan
+
+# Serial options
+# CAN_SERVER_SERIAL=/dev/ttyUSB0
+# CAN_SERVER_BAUD=115200
+
+# SocketCAN interface
+# CAN_SERVER_IF=can0
+
+# Listen address
+# CAN_SERVER_LISTEN=:20000
+
+# Hub buffer & policy
+# CAN_SERVER_HUB_BUFFER=512
+# CAN_SERVER_HUB_POLICY=drop
+
+# Client limits and timeouts
+# CAN_SERVER_MAX_CLIENTS=0            # 0 = unlimited
+# CAN_SERVER_HANDSHAKE_TIMEOUT=3s     # e.g. 2s, 5s
+# CAN_SERVER_CLIENT_READ_TIMEOUT=60s  # per-connection read deadline
+
+# Logging
+# CAN_SERVER_LOG_FORMAT=text          # text|json
+# CAN_SERVER_LOG_LEVEL=info           # debug|info|warn|error
+
+# Metrics address (empty disables)
+# CAN_SERVER_METRICS=:9100
+
+# Extra flags
+# CAN_SERVER_EXTRA_FLAGS=
+
+# mDNS advertisement: systemd unit passes -mdns-enable true by default.
+# Set to false here to disable, or set to true explicitly.
+# CAN_SERVER_MDNS_ENABLE=false

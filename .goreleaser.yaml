@@ -1,0 +1,74 @@
+version: 2
+project_name: can-server
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: default
+    main: ./cmd/can-server
+    binary: can-server
+    env: [CGO_ENABLED=0]
+    goos: [linux]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X main.version={{ .Version }} -X main.commit={{ .Commit }} -X main.date={{ .Date }}
+
+upx:
+  - ids: [default]
+    enabled: true
+    compress: best
+    brute: true
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    allow_different_binary_count: false
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: sha256sums.txt
+
+report_sizes: true
+
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^chore:'
+      - '^test:'
+      - Merge pull request
+      - Merge branch
+
+
+release:
+  draft: false
+  prerelease: "false"
+  name_template: "{{ .Tag }}"
+
+nfpms:
+  - id: linux-packages
+    package_name: can-server
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Arch }}"
+    maintainer: "kstaniek <noreply@users.noreply.github.com>"
+    description: CAN ↔ TCP cannelloni gateway
+    homepage: https://github.com/kstaniek/go-ampio-server
+    license: MIT
+    formats: [deb]
+    contents:
+      - src: packaging/deb/etc/systemd/system/can-server.service
+        dst: /etc/systemd/system/can-server.service
+        type: config
+      - src: packaging/deb/etc/default/can-server
+        dst: /etc/default/can-server
+        type: config
+    scripts:
+      postinstall: packaging/deb/DEBIAN/postinst
+      preremove: packaging/deb/DEBIAN/prerm
+
