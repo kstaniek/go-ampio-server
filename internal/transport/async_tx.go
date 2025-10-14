@@ -95,6 +95,7 @@ func (a *AsyncTx) loop() {
 var ErrAsyncTxClosed = errors.New("async tx closed")
 
 func (a *AsyncTx) SendFrame(fr can.Frame) error {
+	// Fast-path check so steady-state sends avoid taking the lock when already shut down.
 	if a.closed.Load() {
 		return ErrAsyncTxClosed
 	}
