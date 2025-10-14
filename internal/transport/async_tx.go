@@ -31,6 +31,7 @@ import (
 // Hooks let each backend keep distinct metrics / logging without duplicating
 // the goroutine + buffer plumbing.
 type AsyncTx struct {
+	mu     sync.Mutex
 	ch     chan can.Frame
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -94,6 +95,12 @@ func (a *AsyncTx) loop() {
 var ErrAsyncTxClosed = errors.New("async tx closed")
 
 func (a *AsyncTx) SendFrame(fr can.Frame) error {
+	// Fast-path check so steady-state sends avoid taking the lock when already shut down.
+	if a.closed.Load() {
+		return ErrAsyncTxClosed
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	if a.closed.Load() {
 		return ErrAsyncTxClosed
 	}
@@ -113,8 +120,10 @@ func (a *AsyncTx) Close() {
 	if a.closed.Swap(true) { // already closed
 		return
 	}
-	// Cancel context to stop loop, then drain channel (non-blocking) and close.
+	// Cancel context to stop loop, then close channel under the send lock to avoid races.
 	a.cancel()
+	a.mu.Lock()
 	close(a.ch)
+	a.mu.Unlock()
 	a.wg.Wait()
 }

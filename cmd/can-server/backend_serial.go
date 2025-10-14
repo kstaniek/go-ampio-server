@@ -49,7 +49,7 @@ func initSerialBackend(ctx context.Context, cfg *appConfig, h *hub.Hub, l *slog.
 			if n > 0 {
 				acc.Write(buf[:n])
 				_ = serCodec.DecodeStream(acc, func(fr can.Frame) { h.Broadcast(fr) })
-				if acc.Len() == 0 && cap(acc.Bytes()) > largeBufferReclaimThreshold {
+				if acc.Len() == 0 && acc.Cap() > largeBufferReclaimThreshold {
 					acc = bytes.NewBuffer(nil)
 				}
 				backoff = rxBackoffMin
