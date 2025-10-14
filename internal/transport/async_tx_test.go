@@ -100,3 +100,18 @@ func TestAsyncTxSendAfterClose(t *testing.T) {
 		t.Fatalf("expected ErrAsyncTxClosed, got %v", err)
 	}
 }
+
+func TestAsyncTxCloseConcurrentSend(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		ax := NewAsyncTx(context.Background(), 1, func(fr can.Frame) error { return nil }, Hooks{})
+		done := make(chan error, 1)
+		go func() {
+			done <- ax.SendFrame(can.Frame{})
+		}()
+		time.Sleep(1 * time.Millisecond)
+		ax.Close()
+		if err := <-done; err != nil && !errors.Is(err, ErrAsyncTxClosed) {
+			t.Fatalf("iteration %d: unexpected send error %v", i, err)
+		}
+	}
+}
